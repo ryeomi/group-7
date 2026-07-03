@@ -1,0 +1,2 @@
+# showmate
+aibootcamp - showmate group
