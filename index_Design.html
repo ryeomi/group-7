@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공연메이트 showmate 🎫</title>
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 상단 헤더 -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <span class="logo-mark">🎫</span>
+        <span class="logo-text">공연메이트 <span class="logo-en">showmate</span></span>
+      </a>
+      <button id="fav-toggle" class="fav-toggle" title="찜한 공연만 보기">
+        <span class="fav-toggle-ico">🤍</span>
+        <span class="fav-toggle-label">찜 목록</span>
+        <span id="fav-count" class="fav-toggle-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 히어로 배너 -->
+    <section class="hero">
+      <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+      <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+      <div class="hero-content">
+        <span class="hero-eyebrow">🎓 대학생 공연 메이트 매칭</span>
+        <h1 class="hero-title">오늘, 같이 공연<br />보러 갈래요?</h1>
+        <p class="hero-sub">보고 싶은 공연을 찾고, 함께 볼 메이트까지 한 번에.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><strong id="stat-shows">0</strong><span>공연</span></div>
+          <div class="hero-divider" aria-hidden="true"></div>
+          <div class="hero-stat"><strong id="stat-mates">0</strong><span>메이트 모집</span></div>
+          <div class="hero-divider" aria-hidden="true"></div>
+          <div class="hero-stat"><strong id="stat-genres">0</strong><span>장르</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 검색 + 장르 필터 -->
+    <section class="search-area">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="search-input" type="text" placeholder="공연명이나 공연장을 검색해 보세요" />
+      </div>
+      <div id="genre-chips" class="chips"><!-- JS 렌더링 --></div>
+    </section>
+
+    <!-- 공연 카드 그리드 -->
+    <section>
+      <div class="section-head">
+        <h2 class="section-title">🎭 공연 둘러보기</h2>
+        <span id="result-count" class="result-count"></span>
+      </div>
+      <div id="card-grid" class="card-grid"><!-- JS 렌더링 --></div>
+      <p id="empty-msg" class="empty hidden">조건에 맞는 공연이 없어요 🥲<br />필터를 바꿔보세요!</p>
+    </section>
+
+    <!-- 메이트 모집 -->
+    <section id="mate-section">
+      <div class="section-head">
+        <h2 class="section-title">👯 메이트 모집 <span class="badge-new">NEW</span></h2>
+      </div>
+      <p class="section-sub">혼자 보기 아쉬운 공연, 같이 볼 사람을 찾아보세요!</p>
+      <div id="mate-list" class="mate-grid"><!-- JS 렌더링 --></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 공연메이트 showmate · 대학생 팀 프로젝트 데모 🎓</p>
+  </footer>
+
+  <!-- 공연 상세 모달 -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button id="modal-close" class="modal-close" aria-label="닫기">✕</button>
+      <div id="modal-body"><!-- JS 렌더링 --></div>
+    </div>
+  </div>
+
+  <!-- Toast 알림 -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

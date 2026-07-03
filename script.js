@@ -39,6 +39,15 @@ let state = {
 
 const $ = (sel) => document.querySelector(sel);
 
+/* ---------- 유틸 ---------- */
+function mateCountFor(showId) {
+  return MATES.filter((m) => m.showId === showId).length;
+}
+function shortPrice(price) {
+  // 카드에는 대표가격 한 줄만 (예: 'VIP 190,000원 / R 150,000원' -> 'VIP 190,000원')
+  return price.split('/')[0].trim();
+}
+
 /* ---------- 찜 ---------- */
 function isFav(id) {
   return state.favs.includes(id);
@@ -59,10 +68,19 @@ function toggleFav(id) {
 }
 
 function renderFavCount() {
-  $('#fav-count').textContent = state.favs.length;
   const btn = $('#fav-toggle');
-  btn.innerHTML = `${state.onlyFavs ? '❤️' : '🤍'} 찜 목록 <span id="fav-count">${state.favs.length}</span>`;
+  btn.innerHTML = `
+    <span class="fav-toggle-ico">${state.onlyFavs ? '❤️' : '🤍'}</span>
+    <span class="fav-toggle-label">찜 목록</span>
+    <span id="fav-count" class="fav-toggle-count">${state.favs.length}</span>`;
   btn.classList.toggle('active', state.onlyFavs);
+}
+
+/* ---------- 히어로 통계 ---------- */
+function renderStats() {
+  $('#stat-shows').textContent = PERFORMANCES.length;
+  $('#stat-mates').textContent = MATES.length;
+  $('#stat-genres').textContent = GENRES.length - 1; // '전체' 제외
 }
 
 /* ---------- Toast ---------- */
@@ -96,9 +114,11 @@ function getFiltered() {
 function renderCards() {
   const list = getFiltered();
   $('#empty-msg').classList.toggle('hidden', list.length > 0);
+  $('#result-count').textContent = `${list.length}개의 공연`;
   $('#card-grid').innerHTML = list
-    .map(
-      (p) => `
+    .map((p) => {
+      const mates = mateCountFor(p.id);
+      return `
       <article class="card" data-id="${p.id}">
         <div class="poster" style="background: linear-gradient(135deg, ${p.colors[0]}, ${p.colors[1]})">${p.emoji}</div>
         <button class="heart-btn ${isFav(p.id) ? 'liked' : ''}" data-fav="${p.id}" aria-label="찜하기">
@@ -111,9 +131,13 @@ function renderCards() {
           </div>
           <h3 class="card-title">${p.title}</h3>
           <p class="card-meta">${p.venue}<br>🗓️ ${p.date}</p>
+          <div class="card-foot">
+            <span class="card-price">${shortPrice(p.price)}</span>
+            ${mates ? `<span class="card-mate">👯 메이트 ${mates}</span>` : ''}
+          </div>
         </div>
-      </article>`
-    )
+      </article>`;
+    })
     .join('');
 }
 
@@ -158,8 +182,15 @@ function renderMates() {
             <p class="mate-name">${m.name}</p>
             <p class="mate-info">${m.dept}</p>
           </div>
+          <span class="mate-status">모집중</span>
         </div>
-        <div class="mate-show" data-id="${show.id}">${show.emoji} ${show.title} · ${show.date}</div>
+        <div class="mate-show" data-id="${show.id}">
+          <span class="mate-show-thumb" style="background: linear-gradient(135deg, ${show.colors[0]}, ${show.colors[1]})">${show.emoji}</span>
+          <span class="mate-show-text">
+            <span class="mate-show-title">${show.title}</span>
+            <span class="mate-show-date">🗓️ ${show.date}</span>
+          </span>
+        </div>
         <p class="mate-msg">${m.msg}</p>
         <div class="mate-tags">${m.tags.map((t) => `<span class="mate-tag">${t}</span>`).join('')}</div>
         <button class="mate-btn" data-mate="${m.name}">💬 말 걸어보기</button>
@@ -200,7 +231,7 @@ function bindEvents() {
     state.onlyFavs = !state.onlyFavs;
     renderFavCount();
     renderCards();
-    showToast(state.onlyFavs ? '찜한 공연만 보여드릴게요 💜' : '전체 공연을 보여드릴게요');
+    showToast(state.onlyFavs ? '찜한 공연만 보여드릴게요 💙' : '전체 공연을 보여드릴게요');
   });
 
   // 모달 내부 버튼 (찜 / 예매)
@@ -243,4 +274,5 @@ renderChips();
 renderCards();
 renderMates();
 renderFavCount();
+renderStats();
 bindEvents();
