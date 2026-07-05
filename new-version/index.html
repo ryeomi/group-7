@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공연메이트 showmate 🎫</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 상단 헤더 -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#">🎫 공연메이트 <span class="logo-en">showmate</span></a>
+      <div class="header-actions">
+        <button id="fav-toggle" class="fav-toggle" title="찜한 공연만 보기">🤍 찜 목록 <span id="fav-count">0</span></button>
+        <button id="mypage-btn" class="mypage-btn" title="마이페이지" onclick="openMyPage()">🙋 마이페이지</button>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <!-- 히어로 배너 -->
+    <section class="hero">
+      <h1>오늘, 같이 공연 보러 갈래요? 💜</h1>
+      <p>공연도 찾고, 같이 볼 메이트도 찾는 공연메이트!</p>
+    </section>
+
+    <!-- 검색 + 장르 필터 -->
+    <section class="search-area">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="search-input" type="text" placeholder="공연명이나 공연장을 검색해 보세요" />
+      </div>
+      <div id="genre-chips" class="chips"><!-- JS 렌더링 --></div>
+    </section>
+
+    <!-- 공연 카드 그리드 -->
+    <section>
+      <h2 class="section-title">🎭 공연 둘러보기</h2>
+      <div id="card-grid" class="card-grid"><!-- JS 렌더링 --></div>
+      <p id="empty-msg" class="empty hidden">조건에 맞는 공연이 없어요 🥲 필터를 바꿔보세요!</p>
+    </section>
+
+    <!-- 동행 모집 (메이트 게시판) -->
+    <section id="mate-section">
+      <h2 class="section-title">
+        👯 동행 모집 <span class="badge-new">NEW</span>
+        <span class="spacer"></span>
+        <button class="btn-recruit" onclick="openWrite()">＋ 동행 모집하기</button>
+      </h2>
+      <p class="section-sub">혼자 보기 아쉬운 공연, 같은 취향의 메이트를 찾아보세요!</p>
+      <div id="mate-filters" class="chips"><!-- JS 렌더링 --></div>
+      <div id="mate-list" class="mate-grid" style="margin-top:14px"><!-- JS 렌더링 --></div>
+      <p id="mate-empty" class="empty hidden">이 조건의 동행 모집글이 아직 없어요 🥲</p>
+    </section>
+  </main>
+  <footer class="footer">
+    <p>© 2026 공연메이트 showmate · 대학생 팀 프로젝트 데모 🎓</p>
+  </footer>
+
+  <!-- 공연 상세 모달 (탭: 상세 / 관람평 / 동행) -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button id="modal-close" class="modal-close" aria-label="닫기">✕</button>
+      <div id="modal-body"><!-- JS 렌더링 --></div>
+    </div>
+  </div>
+
+  <!-- 동행 플로우 (작성 / 프로필 / 채팅 + 바텀시트) -->
+  <div id="flow-overlay" class="flow-overlay hidden">
+    <div class="flow-modal" id="flow-modal">
+      <div id="flow-inner"><!-- JS 렌더링 --></div>
+      <!-- 바텀시트 (인사말) -->
+      <div class="sheet-dim" id="sheet-dim" onclick="closeSheet()"></div>
+      <div class="sheet" id="sheet">
+        <div class="grab"></div>
+        <h4>먼저 인사말을 보내볼까요?</h4>
+        <p>가벼운 인사로 시작하면 매칭 확률이 올라가요 (스팸 방지).</p>
+        <div class="quicks" id="greet-quicks">
+          <button>안녕하세요! 같이 관람해요 😊</button>
+          <button>조용히 감상하는 편이에요~</button>
+          <button>혹시 그 날짜 가능하세요?</button>
+        </div>
+        <textarea id="greet-text" placeholder="인사말을 입력해주세요."></textarea>
+        <button class="send" onclick="sendGreeting()">인사말 보내고 채팅 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 마이페이지 -->
+  <div id="mypage-overlay" class="mypage-overlay hidden">
+    <div class="mypage-modal">
+      <div id="mypage-inner"><!-- JS 렌더링 --></div>
+    </div>
+  </div>
+
+  <!-- 예매 페이지 -->
+  <div id="book-overlay" class="flow-overlay hidden">
+    <div class="flow-modal">
+      <div id="book-inner"><!-- JS 렌더링 --></div>
+    </div>
+  </div>
+
+  <!-- 매너 평가 -->
+  <div id="rate-overlay" class="rate-overlay hidden">
+    <div class="rate-modal">
+      <div id="rate-inner"><!-- JS 렌더링 --></div>
+    </div>
+  </div>
+
+  <!-- Toast 알림 -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
