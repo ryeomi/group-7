@@ -5,6 +5,10 @@
 
 /* ---------- 데이터 ---------- */
 const GENRES = ['전체', '뮤지컬', '콘서트', '연극', '클래식', '전시'];
+const REGIONS = ['전체', '서울', '경기', '부산', '인천', '대구'];
+const SCHEDULES = ['전체', '이번 달', '주말', '상시 공연'];
+const SORTS = ['기본순', '동행 인기순', '가격 낮은순'];
+const THIS_MONTH = 7; // 데모 기준: 2026년 7월
 const PERFORMANCES = [
   { id: 1,  title: '뮤지컬 〈레미제라블〉', genre: '뮤지컬', region: '서울', venue: '블루스퀘어 신한카드홀', date: '2026.07.10 ~ 09.27', price: 'VIP 190,000원 / R 150,000원', emoji: '🎭', colors: ['#312e81', '#7c3aed'], desc: '빅토르 위고의 대작을 무대로 옮긴 세계 4대 뮤지컬. 장발장의 구원과 혁명의 시대를 웅장한 넘버로 그려냅니다.' },
   { id: 2,  title: '뮤지컬 〈위키드〉', genre: '뮤지컬', region: '부산', venue: '드림씨어터', date: '2026.08.01 ~ 10.11', price: 'VIP 170,000원 / R 140,000원', emoji: '🧙', colors: ['#065f46', '#10b981'], desc: '오즈의 마법사, 그 이전의 이야기. 초록 마녀 엘파바와 글린다의 우정을 그린 브로드웨이 히트작.' },
@@ -86,7 +90,7 @@ let MYSCHEDULE = [
 const LS_KEY = 'showmate_favs';
 let storedFavs = localStorage.getItem(LS_KEY);
 let state = {
-  keyword: '', genre: '전체', onlyFavs: false,
+  keyword: '', genre: '전체', region: '전체', schedule: '전체', sort: '기본순', onlyFavs: false,
   favs: storedFavs ? JSON.parse(storedFavs) : [3, 9], // 첫 방문 데모용 찜
 };
 if (!storedFavs) localStorage.setItem(LS_KEY, JSON.stringify(state.favs));
@@ -114,10 +118,10 @@ function posterHTML(p, opts){
   return `
     <span class="poster-emoji ${opts.big?'big':''}">${p.emoji}</span>
     ${opts.big ? '' : verifiedInPoster(p)}
-    <div class="poster-scrim">
+    ${opts.big ? `<div class="poster-scrim">
       <span class="poster-kicker">${p.genre} · ${p.region}</span>
-      <span class="poster-name ${opts.big?'lg':''}">${p.title}</span>
-    </div>
+      <span class="poster-name lg">${p.title}</span>
+    </div>` : ''}
     ${seek ? `<span class="seek-badge">🔥 ${seek}명이 동행 찾는 중</span>` : ''}`;
 }
 function verifiedInPoster(p){
@@ -158,26 +162,87 @@ function renderChips(){
   ).join('');
 }
 
+/* ================= 상세 필터 칩 (지역 / 일정 / 정렬) ================= */
+function renderFilterChips(){
+  $('#region-chips').innerHTML = REGIONS.map(
+    (r)=>`<button class="chip ${state.region===r?'active':''}" data-region="${r}">${r}</button>`
+  ).join('');
+  $('#schedule-chips').innerHTML = SCHEDULES.map(
+    (s)=>`<button class="chip ${state.schedule===s?'active':''}" data-schedule="${s}">${s}</button>`
+  ).join('');
+  $('#sort-chips').innerHTML = SORTS.map(
+    (s)=>`<button class="chip ${state.sort===s?'active':''}" data-sort="${s}">${s}</button>`
+  ).join('');
+}
+
+/* ---------- 필터/정렬 헬퍼 ---------- */
+function priceMin(p){
+  const nums = [...p.price.matchAll(/([\d,]+)\s*원/g)].map(m=>+m[1].replace(/,/g,'')).filter(n=>n>0);
+  return nums.length ? Math.min(...nums) : Infinity;
+}
+
+function firstShowDate(p){
+  const m = p.date.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+
+function isWeekendShow(p){
+  const d = firstShowDate(p);
+  return d ? (d.getDay()===0 || d.getDay()===6) : false;
+}
+
+function matchesSchedule(p){
+  const s = state.schedule;
+  if (s==='전체') return true;
+  if (s==='상시 공연') return p.date.includes('상시');
+  if (s==='주말') return isWeekendShow(p);
+  if (s==='이번 달'){
+    if (p.date.includes('상시')) return true;
+    const start = p.date.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+    if (!start) return false;
+    const startMo = +start[2];
+    let endMo = startMo;
+    const range = p.date.split('~')[1];
+    if (range){
+      const em = range.match(/(\d{2})\.(\d{2})/);
+      if (em) endMo = +em[1];
+    }
+    return startMo <= THIS_MONTH && THIS_MONTH <= endMo;
+  }
+  return true;
+}
+
 /* ================= 공연 카드 ================= */
 function getFiltered(){
   const kw = state.keyword.trim().toLowerCase();
-  return PERFORMANCES.filter((p)=>{
+  let list = PERFORMANCES.filter((p)=>{
     if (state.onlyFavs && !isFav(p.id)) return false;
     if (state.genre !== '전체' && p.genre !== state.genre) return false;
+    if (state.region !== '전체' && p.region !== state.region) return false;
+    if (!matchesSchedule(p)) return false;
     if (kw && !p.title.toLowerCase().includes(kw) && !p.venue.toLowerCase().includes(kw)) return false;
     return true;
   });
+  if (state.sort === '동행 인기순') list = list.slice().sort((a,b)=>seekCount(b.id)-seekCount(a.id) || a.id-b.id);
+  else if (state.sort === '가격 낮은순') list = list.slice().sort((a,b)=>priceMin(a)-priceMin(b) || a.id-b.id);
+  else list = list.slice().sort((a,b)=>a.id-b.id);
+  return list;
 }
+
 function renderCards(){
   const list = getFiltered();
   $('#empty-msg').classList.toggle('hidden', list.length>0);
+  const rc = $('#result-count');
+  if (rc) rc.textContent = `${list.length}개`;
   $('#card-grid').innerHTML = list.map((p)=>`
       <article class="card" data-id="${p.id}">
         <div class="poster" style="background:${posterBg(p)}">${posterHTML(p, {seek:true})}</div>
         <button class="heart-btn ${isFav(p.id)?'liked':''}" data-fav="${p.id}" aria-label="찜하기">${isFav(p.id)?'❤️':'🤍'}</button>
         <div class="card-body">
+          <h3 class="card-title">${p.title}</h3>
+          <p class="card-date">🗓️ ${p.date}</p>
+          <p class="card-venue">📍 ${p.venue}</p>
           <div class="card-tags"><span class="tag-genre">${p.genre}</span><span class="tag-region">📍 ${p.region}</span></div>
-          <p class="card-meta">${p.venue}<br>🗓️ ${p.date}</p>
         </div>
       </article>`).join('');
 }
@@ -421,7 +486,15 @@ function openChat(postId, firstMsg){
   openFlow();
   if (firstMsg) setTimeout(()=>{ addMsg(firstMsg,'me'); replyLater(); }, 300);
 }
-function addMsg(text,who){ const d=document.createElement('div'); d.className='msg '+who; d.textContent=text; $('#chat-scroll').appendChild(d); scrollChat(); }
+function addMsg(text,who){
+  const box = $('#chat-scroll');
+  if (!box) return;
+  const d = document.createElement('div');
+  d.className = 'msg '+who;
+  d.textContent = text;
+  box.appendChild(d);
+  scrollChat();
+}
 function scrollChat(){ const s=$('#chat-scroll'); s.scrollTop=s.scrollHeight; }
 function sendMsg(){ const inp=$('#chat-text'); const v=inp.value.trim(); if(!v)return; addMsg(v,'me'); inp.value=''; replyLater(); }
 function replyLater(){
@@ -677,6 +750,13 @@ function bindEvents(){
   $('#genre-chips').addEventListener('click',(e)=>{ const c=e.target.closest('[data-genre]'); if(!c)return;
     state.genre=c.dataset.genre; renderChips(); renderCards(); });
 
+  $('#region-chips').addEventListener('click',(e)=>{ const c=e.target.closest('[data-region]'); if(!c)return;
+    state.region=c.dataset.region; renderFilterChips(); renderCards(); });
+  $('#schedule-chips').addEventListener('click',(e)=>{ const c=e.target.closest('[data-schedule]'); if(!c)return;
+    state.schedule=c.dataset.schedule; renderFilterChips(); renderCards(); });
+  $('#sort-chips').addEventListener('click',(e)=>{ const c=e.target.closest('[data-sort]'); if(!c)return;
+    state.sort=c.dataset.sort; renderFilterChips(); renderCards(); });
+
   $('#card-grid').addEventListener('click',(e)=>{
     const heart=e.target.closest('[data-fav]'); if(heart){ toggleFav(Number(heart.dataset.fav)); return; }
     const card=e.target.closest('.card'); if(card) openModal(card.dataset.id,'info');
@@ -709,10 +789,21 @@ function bindEvents(){
   $('#mypage-overlay').addEventListener('click',(e)=>{ if(e.target===$('#mypage-overlay')) closeMyPage(); });
 }
 
+/* ================= 히어로 통계 ================= */
+function renderHeroStats(){
+  const shows = $('#stat-shows');
+  if (!shows) return;
+  shows.textContent = PERFORMANCES.length;
+  $('#stat-mates').textContent = MATEPOSTS.filter(p=>p.status==='open').length;
+  $('#stat-genres').textContent = GENRES.length - 1;
+}
+
 /* ================= 초기화 ================= */
 renderChips();
+renderFilterChips();
 renderCards();
 renderMateChips();
 renderMateBoard();
 renderFavCount();
+renderHeroStats();
 bindEvents();

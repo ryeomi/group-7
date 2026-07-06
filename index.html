@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>공연메이트 showmate 🎫</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -25,8 +26,20 @@
         <main class="container">
           <!-- 히어로 배너 -->
           <section class="hero">
-            <h1>오늘, 같이 공연 보러 갈래요? 💜</h1>
-            <p>공연도 찾고, 같이 볼 메이트도 찾는 공연메이트!</p>
+            <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+            <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+            <div class="hero-content">
+              <span class="hero-eyebrow">🎓 대학생 공연 메이트 매칭</span>
+              <h1>오늘, 같이 공연 보러 갈래요?</h1>
+              <p>공연도 찾고, 같이 볼 메이트도 찾는 공연메이트!</p>
+              <div class="hero-stats">
+                <div class="hero-stat"><strong id="stat-shows">0</strong><span>공연</span></div>
+                <div class="hero-divider" aria-hidden="true"></div>
+                <div class="hero-stat"><strong id="stat-mates">0</strong><span>동행 모집</span></div>
+                <div class="hero-divider" aria-hidden="true"></div>
+                <div class="hero-stat"><strong id="stat-genres">0</strong><span>장르</span></div>
+              </div>
+            </div>
           </section>
 
           <!-- 검색 + 장르 필터 -->
@@ -36,11 +49,16 @@
               <input id="search-input" type="text" placeholder="공연명이나 공연장을 검색해 보세요" />
             </div>
             <div id="genre-chips" class="chips"><!-- JS 렌더링 --></div>
+            <div class="filter-bar">
+              <div class="filter-row"><span class="filter-label">지역</span><div id="region-chips" class="chips"><!-- JS 렌더링 --></div></div>
+              <div class="filter-row"><span class="filter-label">일정</span><div id="schedule-chips" class="chips"><!-- JS 렌더링 --></div></div>
+              <div class="filter-row"><span class="filter-label">정렬</span><div id="sort-chips" class="chips"><!-- JS 렌더링 --></div></div>
+            </div>
           </section>
 
           <!-- 공연 카드 그리드 -->
           <section>
-            <h2 class="section-title">🎭 공연 둘러보기</h2>
+            <h2 class="section-title">🎭 공연 둘러보기 <span class="spacer"></span><span id="result-count" class="result-count"></span></h2>
             <div id="card-grid" class="card-grid"><!-- JS 렌더링 --></div>
             <p id="empty-msg" class="empty hidden">조건에 맞는 공연이 없어요 🥲 필터를 바꿔보세요!</p>
           </section>
